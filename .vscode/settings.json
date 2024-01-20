@@ -1,0 +1,18 @@
+{
+    "cmake.sourceDirectory": "/home/rtviii/dev/open3d_mesh/gemmi",
+    "files.associations": {
+        "*.md": "markdown",
+        "*.py": "python",
+        "*.tcc": "cpp",
+        "bitset": "cpp",
+        "chrono": "cpp",
+        "string": "cpp",
+        "format": "cpp",
+        "fstream": "cpp",
+        "istream": "cpp",
+        "sstream": "cpp",
+        "regex": "cpp",
+        "variant": "cpp",
+        "*.inc": "cpp"
+    }
+}
