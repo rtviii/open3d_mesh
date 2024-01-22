@@ -1,5 +1,5 @@
 {
-    "cmake.sourceDirectory": "/home/rtviii/dev/open3d_mesh/gemmi",
+    "cmake.sourceDirectory": "/Users/rtviii/dev/open3d_mesh",
     "files.associations": {
         "*.md": "markdown",
         "*.py": "python",

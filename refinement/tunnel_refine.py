@@ -8,7 +8,6 @@ import open3d as o3d
 from open3d import core as o3c
 from mendeleev import element
 
-#TODO : Remove ions and non-standard residues when refining the tunnel
 
 refined_tunnel_coordinates = {
     "3JAH": [
@@ -1570,12 +1569,8 @@ refined_tunnel_coordinates = {
     ],
 }
 
-
 RCSB_ID     = "6Z6K"
 RIBETL_DATA = '/home/rtviii/dev/RIBETL_DATA'
-
-
-
 
 def parse_struct_via_centerline()->list:
     """return list of atoms"""
