@@ -1569,79 +1569,84 @@ refined_tunnel_coordinates = {
     ],
 }
 
-RCSB_ID     = "6Z6K"
-RIBETL_DATA = '/home/rtviii/dev/RIBETL_DATA'
+RCSB_ID = "6Z6K"
+RIBETL_DATA = "/Users/rtviii/dev/open3d_mesh"
 
-def parse_struct_via_centerline()->list:
+
+def parse_struct_via_centerline() -> list:
     """return list of atoms"""
-    parser      = MMCIFParser()
-    struct_path = "{}/{}/{}.cif".format(RIBETL_DATA,RCSB_ID, RCSB_ID)
-    structure   = parser.get_structure(RCSB_ID, struct_path)
+    parser = MMCIFParser()
+    struct_path = "{}/{}/{}.cif".format(RIBETL_DATA, RCSB_ID, RCSB_ID)
+    structure = parser.get_structure(RCSB_ID, struct_path)
 
-    atoms       = Selection.unfold_entities(structure, "A")
-    ns          = NeighborSearch(atoms)
+    atoms = Selection.unfold_entities(structure, "A")
+    ns = NeighborSearch(atoms)
     coordinates = refined_tunnel_coordinates["6Z6K"]
 
     nearby_atoms_list = []
+
+    nbhd = []
     for coord in coordinates:
-        nearby_atoms      = ns.search(coord, 15.0, 'A')  # 10.0 is the distance in angstroms
+        nearby_atoms = ns.search(coord, 15.0, "A")  # 10.0 is the distance in angstroms
         nearby_atoms_list = list(nearby_atoms)
-    return nearby_atoms_list
+        nbhd = nbhd + nearby_atoms_list
 
-def encode_atoms(nearby_atoms_list:list):
+    return nbhd
 
+
+def encode_atoms(nearby_atoms_list: list):
     atom_radii = {
-    # element: vwd_radius
+        # element: vwd_radius
     }
-    atom_encodings =  {
-
+    atom_encodings = {
         # C : 1
         # N : 2
     }
 
     coordinates = []
-    encodings   = []
+    encodings = []
+
     for atom in nearby_atoms_list:
-        COORD     = atom.get_coord()
+        COORD = atom.get_coord().tolist()
         atom_type = atom.element
+
         if atom_type not in atom_radii:
-            atom_radii[atom_type] = element(atom_type).vdw_radius/100
+            atom_radii[atom_type] = element(atom_type).vdw_radius / 100
         if atom_type not in atom_encodings:
-            atom_encodings[atom_type] = len( atom_encodings.keys ()) + 1
-         
-        VDW_R       = atom_radii[atom_type]
+            atom_encodings[atom_type] = len(atom_encodings.keys()) + 1
+
+        VDW_R = atom_radii[atom_type]
         encoding_id = atom_encodings[atom_type]
 
         coordinates.append(COORD)
         encodings.append([VDW_R, encoding_id, 0])
 
-
     encodings_dict = {
-        **atom_radii,
-        **atom_encodings,
-        "coordinates"   : coordinates,
-        "radius_types_0": encodings
+        "atom_indices": atom_encodings,
+        "coordinates": coordinates,
+        "radius_types_0": encodings,
     }
     return encodings_dict
 
 
-
-def create_pcd_from_atoms(positions:np.ndarray, atom_types:np.ndarray, save_path:str):
-    pcd = o3d.geometry.PointCloud( o3d.utility.Vector3dVector(positions) )
+def create_pcd_from_atoms(
+    positions: np.ndarray, atom_types: np.ndarray, save_path: str
+):
+    pcd = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(positions))
     pcd.colors = o3d.utility.Vector3dVector(atom_types)
     o3d.io.write_point_cloud(save_path, pcd)
 
 
-atoms          = parse_struct_via_centerline()
+atoms = parse_struct_via_centerline()
 encodings_dict = encode_atoms(atoms)
-coordinates    = encodings_dict["coordinates"]
-colors         = encodings_dict["radius_types_0"]
-encodings_path = 'home/rtviii/dev/open3d_mesh/encodings/{}.json'.format(RCSB_ID)
+coordinates = encodings_dict["coordinates"]
+colors = encodings_dict["radius_types_0"]
+encodings_path = "/Users/rtviii/dev/open3d_mesh/encodings/{}.json".format(RCSB_ID)
 
-with open(encodings_path, 'w') as fp:
+with open(encodings_path, "w") as fp:
     json.dump(encodings_dict, fp)
 
-create_pcd_from_atoms(coordinates, colors, "home/rtviii/dev/open3d_mesh/encodings/{}.json".format(RCSB_ID))
+# create_pcd_from_atoms(coordinates, colors, "home/rtviii/dev/open3d_mesh/encodings/{}.json".format(RCSB_ID))
 
 # n = np.vstack((nbhd))
 
