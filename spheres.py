@@ -41,11 +41,77 @@ Cz = Cz + abs(dev)
 
 
 
+#! ---create gride
+amplitude_X =  np.max(Cx) - np.min(Cx)
+amplitude_Y =  np.max(Cy) - np.min(Cy)
+amplitude_Z =  np.max(Cz) - np.min(Cz)
+
+dim = int(np.ceil(np.max([amplitude_Z,amplitude_Y,amplitude_X])) + 10)
+x,y,z = np.indices((dim, dim, dim)) 
+
+def midpoints(x):
+    sl = ()
+    for _ in range(x.ndim):
+        x = (x[sl + np.index_exp[:-1]] + x[sl + np.index_exp[1:]]) / 2.0
+        sl += np.index_exp[:]
+    return x
+
+xc = midpoints(x)
+yc = midpoints(y)
+zc = midpoints(z)
+#! ---create gride
+
+rescaled_coordinates = np.array(list(zip(Cx,Cy,Cz))) 
+
+print(rescaled_coordinates.shape)
+
+#! zero out the whole grid
+filled = xc + yc + zc  < -1
+
+#! fill the grid with the coordinates of the atoms
+# for coord in rescaled_coordinates:
+#     vox_x,vox_y,vox_z = int(np.floor(coord[0])), int(np.floor(coord[1])), int(np.floor(coord[2]))
+#     filled[vox_x,vox_y,vox_z] = True
+
+    
+# given a coordinate of the voxel and a radius around it, get the voxels that are included in the sphere 
+# sphere of radius 2 around the voxel at 45,45,45 
+def get_sphere_indices(center, radius, grid_size):
+    x0, y0, z0 = center
+    indices = []
+
+    for x in range(grid_size[0]):
+        for y in range(grid_size[1]):
+            for z in range(grid_size[2]):
+                if (x - x0)**2 + (y - y0)**2 + (z - z0)**2 <= radius**2:
+                    indices.append((x, y, z))
+
+    return indices
 
 
-np.inidices()
+sphere_indices = get_sphere_indices((45,45,45), 5, (90,90,90))
+print(sphere_indices)
+for index in sphere_indices:
+    filled[index] = True
 
 
+# print(filled.shape)
+# print(filled)
+
+# exit()
+ax = plt.figure().add_subplot(projection='3d')
+ax.voxels(x,y,z,filled,
+           linewidth=0.5) 
+ax.set(xlabel='r', ylabel='g', zlabel='b')
+ax.set_aspect('equal')
+
+plt.show()
+
+# print(amplitude_X)
+# print(amplitude_Y)
+# print(amplitude_Z)
+
+exit()
 
 
 fig = plt.figure()
