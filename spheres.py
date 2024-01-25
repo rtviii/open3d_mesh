@@ -76,33 +76,49 @@ zc = midpoints(z)
 filled = xc + yc + zc  < -1
 
 
+
+
+
+def get_sphere_indices_voxelized(center, radius):
+    """Make sure radius reflects the size of the underlying voxel grid"""
+    radius = int(np.ceil(radius)) # TODO : make sure the radius is not ceil'ed when the gridsize is increased
+    x0, y0, z0 = center
+    
+    #!------ Generate indices of a voxel cube of side 2r+2  around the centerpoint
+    x_range = slice(x0-( radius+1 ), x0+( radius+1 ))
+    y_range = slice(y0-( radius+1 ), y0+( radius+1 ))
+    z_range = slice(z0-( radius+1 ), z0+( radius+1 ))
+
+    indices = np.indices((x_range.stop - x_range.start, y_range.stop - y_range.start, z_range.stop - z_range.start))
+    indices += np.array([x_range.start, y_range.start, z_range.start])[:, np.newaxis, np.newaxis, np.newaxis]
+    indices = indices.transpose(1, 2, 3, 0)
+    indices_list = list(map(tuple, indices.reshape(-1, 3)))
+    #!------ Generate indices of a voxel cube of side 2r+2  around the centerpoint
+
+    sphere_active_ix = []
+    for ind in indices_list:
+        x_ = ind[0]
+        y_ = ind[1]
+        z_ = ind[2]
+        if (x_ - x0)**2 + (y_ - y0)**2 + (z_ - z0)**2 <= radius**2:
+            sphere_active_ix.append((x_, y_, z_))
+
+    return sphere_active_ix
+
 for coordinate, radius_type in zip(rescaled_coordinates, R_T_0):
     vox_x,vox_y,vox_z = int(np.floor(coordinate[0])), int(np.floor(coordinate[1])), int(np.floor(coordinate[2]))
-    indices = get_sphere_indices((vox_x,vox_y,vox_z), radius_type[0], (dim, dim, dim))
+    indices = get_sphere_indices_voxelized((int(vox_x),int(vox_y),int(vox_z)), radius_type[0])
     for index in indices:
         filled[index] = True
-    # print(indices)
-    # print(filled[indices])
-    # print(filled[ind
 
 
 
 
 
-# for coord in rescaled_coordinates:
-#     vox_x,vox_y,vox_z = int(np.floor(coord[0])), int(np.floor(coord[1])), int(np.floor(coord[2]))
-#     filled[vox_x,vox_y,vox_z] = True
-
-
-
-
-
-# print(filled.shape)
-# print(filled)
-
-# exit()
+facecolors =  np.zeros(filled.shape + (3,))
 ax = plt.figure().add_subplot(projection='3d')
 ax.voxels(x,y,z,filled,
+facecolors=[0, 1, 1, 0.3] ,
            linewidth=0.5) 
 ax.set(xlabel='r', ylabel='g', zlabel='b')
 ax.set_aspect('equal')
