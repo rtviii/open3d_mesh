@@ -33,7 +33,10 @@ def get_sphere_indices(center, radius, grid_size):
 
     return indices
 
-#? -------------- Utils ^ --------------------
+
+# ! The data
+# ! - atom coordinates (within 15 angstrom of the centerlin)
+# ! - vdw radius and atom type for each coordinate
 
 with open('./encodings/6Z6K.json', 'r') as infile:
     data = json.load(infile)
@@ -41,34 +44,37 @@ with open('./encodings/6Z6K.json', 'r') as infile:
 C     = np.array(data['coordinates'])
 R_T_0 = np.array(data['radius_types_0'])
 
-#! normalize to origin
-Cx = C[:,0] - np.mean(C[:,0])
-Cy = C[:,1] - np.mean(C[:,1])
-Cz = C[:,2] - np.mean(C[:,2])
+def normalize_atom_coordinates(coordinates:np.ndarray):
+    """@param coordinates: numpy array of shape (N,3) for atoms lining the tunnel in radius R (usually 15Angstrom) from MOLE centerline"""
+    #! normalize to origin
+    C = coordinates
+    Cx = C[:,0] - np.mean(C[:,0])
+    Cy = C[:,1] - np.mean(C[:,1])
+    Cz = C[:,2] - np.mean(C[:,2])
 
-#! negative deviation from zero"
-dev =  np.min(
-        [   
-        np.min(Cx),
-        np.min(Cy),
-        np.min(Cz)
-        ])
+    #! negative deviation from zero"
+    dev =  np.min(
+            [   
+            np.min(Cx),
+            np.min(Cy),
+            np.min(Cz)
+            ])
 
-#! shift to positive quadrant
-Cx = Cx + abs(dev)
-Cy = Cy + abs(dev)
-Cz = Cz + abs(dev)
+    #! shift to positive quadrant
+    Cx = Cx + abs(dev)
+    Cy = Cy + abs(dev)
+    Cz = Cz + abs(dev)
+    rescaled_coords = np.array(list(zip(Cx,Cy,Cz))) 
 
-rescaled_coordinates = np.array(list(zip(Cx,Cy,Cz))) 
+    # ! Create a 3D grid 10 voxels larger than the max amplitude of the point cloud in any direction
+    amplitude_X =  np.max(Cx) - np.min(Cx)
+    amplitude_Y =  np.max(Cy) - np.min(Cy)
+    amplitude_Z =  np.max(Cz) - np.min(Cz)
 
+    biggest_dimension = int(np.ceil(np.max([amplitude_Z,amplitude_Y,amplitude_X])) + 10)
+    return rescaled_coords, biggest_dimension
 
-
-# ! Create a 3D grid 10 voxels larger than the max amplitude of the point cloud in any direction
-amplitude_X =  np.max(Cx) - np.min(Cx)
-amplitude_Y =  np.max(Cy) - np.min(Cy)
-amplitude_Z =  np.max(Cz) - np.min(Cz)
-
-dim = int(np.ceil(np.max([amplitude_Z,amplitude_Y,amplitude_X])) + 10)
+rescaled_coordinates, dim = normalize_atom_coordinates(C)
 x,y,z = np.indices((dim, dim, dim)) 
 xc = midpoints(x)
 yc = midpoints(y)
@@ -105,13 +111,27 @@ def get_sphere_indices_voxelized(center, radius):
 
     return sphere_active_ix
 
-for coordinate, radius_type in zip(rescaled_coordinates, R_T_0):
-    vox_x,vox_y,vox_z = int(np.floor(coordinate[0])), int(np.floor(coordinate[1])), int(np.floor(coordinate[2]))
-    indices = get_sphere_indices_voxelized((int(vox_x),int(vox_y),int(vox_z)), radius_type[0])
-    for index in indices:
-        filled[index] = True
+
+# Visualize just center coordinates
+def visualize_source_coordinates(nulled_grid:np.ndarray, coordinates:np.ndarray, ):
+    for coordinate  in coordinates:
+        # coordinates of the side of the given voxel
+        vox_x,vox_y,vox_z = int(np.floor(coordinate[0])), int(np.floor(coordinate[1])), int(np.floor(coordinate[2]))
+        nulled_grid[vox_x,vox_y,vox_z] = True
 
 
+visualize_source_coordinates(filled,rescaled_coordinates)
+
+
+
+def visualize_as_spheres(nulled_grid, source_coordinates:np.ndarray, radii_types:np.ndarray):
+    for coordinate, radius_type in zip(source_coordinates, radii_types):
+        vox_x,vox_y,vox_z = int(np.floor(coordinate[0])), int(np.floor(coordinate[1])), int(np.floor(coordinate[2]))
+        indices = get_sphere_indices_voxelized((int(vox_x),int(vox_y),int(vox_z)), radius_type[0])
+        for index in indices:
+            nulled_grid[index] = True
+
+visualize_as_spheres(filled,rescaled_coordinates, R_T_0)
 
 
 

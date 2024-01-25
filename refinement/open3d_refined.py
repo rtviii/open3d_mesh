@@ -10,21 +10,6 @@ RCSB_ID = '6Z6K'
 # So if we have a voxel grid of the size 
 
 
-"""Quantize each voxel to be 1/10 of angstrom"""
-
-
-
-def create_sphere(radius:float, center: np.ndarray):
-    
-
-    ...
-
-
-
-def quantize_on_vdw(coordinates, atom_types)->list:
-
-    return []
-
 pcd = o3d.geometry.PointCloud( o3d.utility.Vector3dVector([ [0,0,0], [1,0,0,] ]) )
 N = np.asarray(pcd.points).shape[0]
 pcd.scale(1 / np.max(pcd.get_max_bound() - pcd.get_min_bound()), center=pcd.get_center())
