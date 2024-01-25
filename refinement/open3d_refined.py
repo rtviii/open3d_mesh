@@ -11,7 +11,7 @@ RCSB_ID = '6Z6K'
 
 
 pcd = o3d.geometry.PointCloud( o3d.utility.Vector3dVector([ [0,0,0], [1,0,0,] ]) )
-N = np.asarray(pcd.points).shape[0]
+N   = np.asarray(pcd.points).shape[0]
 pcd.scale(1 / np.max(pcd.get_max_bound() - pcd.get_min_bound()), center=pcd.get_center())
 pcd.colors = o3d.utility.Vector3dVector(np.random.uniform(0, 1, size=(N, 3)))
 # labels = pcd.points

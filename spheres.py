@@ -34,6 +34,7 @@ def get_sphere_indices(center, radius, grid_size):
     return indices
 
 
+
 # ! The data
 # ! - atom coordinates (within 15 angstrom of the centerlin)
 # ! - vdw radius and atom type for each coordinate
@@ -74,15 +75,6 @@ def normalize_atom_coordinates(coordinates:np.ndarray):
     biggest_dimension = int(np.ceil(np.max([amplitude_Z,amplitude_Y,amplitude_X])) + 10)
     return rescaled_coords, biggest_dimension
 
-rescaled_coordinates, dim = normalize_atom_coordinates(C)
-x,y,z = np.indices((dim, dim, dim)) 
-xc = midpoints(x)
-yc = midpoints(y)
-zc = midpoints(z)
-filled = xc + yc + zc  < -1
-
-
-
 
 
 def get_sphere_indices_voxelized(center, radius):
@@ -118,11 +110,10 @@ def visualize_source_coordinates(nulled_grid:np.ndarray, coordinates:np.ndarray,
         # coordinates of the side of the given voxel
         vox_x,vox_y,vox_z = int(np.floor(coordinate[0])), int(np.floor(coordinate[1])), int(np.floor(coordinate[2]))
         nulled_grid[vox_x,vox_y,vox_z] = True
+    return nulled_grid
 
 
-visualize_source_coordinates(filled,rescaled_coordinates)
-
-
+# visualize_source_coordinates(filled,rescaled_coordinates)
 
 def visualize_as_spheres(nulled_grid, source_coordinates:np.ndarray, radii_types:np.ndarray):
     for coordinate, radius_type in zip(source_coordinates, radii_types):
@@ -130,49 +121,31 @@ def visualize_as_spheres(nulled_grid, source_coordinates:np.ndarray, radii_types
         indices = get_sphere_indices_voxelized((int(vox_x),int(vox_y),int(vox_z)), radius_type[0])
         for index in indices:
             nulled_grid[index] = True
+    return nulled_grid
 
-visualize_as_spheres(filled,rescaled_coordinates, R_T_0)
-
-
-
-facecolors =  np.zeros(filled.shape + (3,))
-ax = plt.figure().add_subplot(projection='3d')
-ax.voxels(x,y,z,filled,
-facecolors=[0, 1, 1, 0.3] ,
-           linewidth=0.5) 
-ax.set(xlabel='r', ylabel='g', zlabel='b')
-ax.set_aspect('equal')
-
-plt.show()
-
-# print(amplitude_X)
-# print(amplitude_Y)
-# print(amplitude_Z)
-
-exit()
+# visualize_as_spheres(filled,rescaled_coordinates, R_T_0)
 
 
-fig = plt.figure()
-ax = fig.add_subplot(projection='3d')
-# For each set of style and range settings, plot n random points in the box
-# defined by x in [23, 32], y in [0, 100], z in [zlow, zhigh].
-ax.scatter(Cx, Cy, Cz)
-plt.show()
-# # np.min(Cx)
-# np.min(Cy)
-# np.min(Cz)
-# r, g, b = np.indices((17, 17, 17)) / 16.0
 
 
-sphere = []
+def plt_plot(x_ix,y_ix,z_ix,filled_grid):
+    # facecolors =  np.zeros(filled.shape + (3,))
+    ax = plt.figure().add_subplot(projection='3d')
+    ax.voxels(x_ix,y_ix,z_ix,filled_grid,
+    facecolors=[0, 1, 1, 0.3] , linewidth=0.5) 
+    ax.set(xlabel='r', ylabel='g', zlabel='b')
+    ax.set_aspect('equal')
 
-# ax = plt.figure().add_subplot(projection='3d')
+    plt.show()
+    exit()
 
-# ax.voxels(np.array(zip(Cx,Cy,Cz)),
-        #   facecolors=colors,
-        #   edgecolors=np.clip(2*colors - 0.5, 0, 1),  # brighter
-        #   linewidth=0.5)
-# ax.set(xlabel='r', ylabel='g', zlabel='b')
-# ax.set_aspect('equal')
 
-# plt.show()
+rescaled_coordinates, dim = normalize_atom_coordinates(C)
+x,y,z = np.indices((dim, dim, dim)) 
+xc = midpoints(x)
+yc = midpoints(y)
+zc = midpoints(z)
+filled = xc + yc + zc  < -1
+
+filled = visualize_source_coordinates(filled,rescaled_coordinates)
+plt_plot(x,y,z,filled)
