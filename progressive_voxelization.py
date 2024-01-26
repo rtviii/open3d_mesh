@@ -11,9 +11,9 @@ def get_sphere_indices_voxelized(center: np.ndarray, radius: int):
     x0, y0, z0 = center
 
     #!------ Generate indices of a voxel cube of side 2r+2  around the centerpoint
-    x_range = slice(int(np.floor(x0) - (radius + 1)), int(np.ceil(x0) + (radius + 1)))
-    y_range = slice(int(np.floor(y0) - (radius + 1)), int(np.ceil(y0) + (radius + 1)))
-    z_range = slice(int(np.floor(z0) - (radius + 1)), int(np.ceil(z0) + (radius + 1)))
+    x_range = slice(int(np.floor(x0) - (radius )), int(np.ceil(x0) + (radius )))
+    y_range = slice(int(np.floor(y0) - (radius )), int(np.ceil(y0) + (radius )))
+    z_range = slice(int(np.floor(z0) - (radius )), int(np.ceil(z0) + (radius )))
 
     indices = np.indices( (
             x_range.stop - x_range.start,
@@ -66,7 +66,5 @@ for i in indices2:
 
 
 voxels = np.asarray(voxel_grid.get_voxels())
-# for v in voxels:
-#     print(v.grid_index)
 
 o3d.visualization.draw_geometries([voxel_grid])
