@@ -1621,6 +1621,8 @@ def encode_atoms(nearby_atoms_list: list):
         coordinates.append(COORD)
         encodings.append([VDW_R, encoding_id, 0])
 
+    #TODO:     C = np.unique(C,axis=0)
+
     encodings_dict = {
         "atom_indices": atom_encodings,
         "coordinates": coordinates,
