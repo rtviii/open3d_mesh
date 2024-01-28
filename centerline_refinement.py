@@ -1,5 +1,6 @@
 import json
 import os
+from pprint import pprint
 from Bio.PDB.MMCIFParser import MMCIFParser
 from Bio.PDB.NeighborSearch import NeighborSearch
 from Bio.PDB import Selection
@@ -1575,47 +1576,44 @@ RIBETL_DATA = "/Users/rtviii/dev/RIBETL_DATA"
 # - using the centerline and dynamic probe radius, extract the atoms within 15A radius of the centerline
 # - when processing atoms, encode their vdw radius, atom type and residue and chain id 
 
-def open_tunnel_csv(rcsb_id: str):
+def open_tunnel_csv(rcsb_id: str)->list[list]:
     TUNNEL_DATA = "/Users/rtviii/dev/open3d_mesh/Tunnels"
     TUNNEL_PATH = "{}/tunnel_{}.csv".format(TUNNEL_DATA, rcsb_id)
 
+    df = pd.read_csv(TUNNEL_PATH)   
+    data = []
 
-    # Read the CSV file into a DataFrame
-    df = pd.read_csv(TUNNEL_PATH)
-
-    # Iterate over each row and select "FreeRadius" and XYZ coordinates
     for index, row in df.iterrows():
-        free_radius = row['FreeRadius']
+        radius = row['Radius']
         x_coordinate = row['X']
         y_coordinate = row['Y']
         z_coordinate = row['Z']
+        data.append([radius, x_coordinate, y_coordinate, z_coordinate])
 
-        # Now you can use the selected variables as needed
-        print(f"Free Radius: {free_radius}, Coordinates: ({x_coordinate}, {y_coordinate}, {z_coordinate})")
+    return data
 
-
-
-def parse_struct_via_centerline() -> list:
-    """return list of atoms"""
+def parse_struct_via_centerline(centerline_data:list) -> list:
+    """centerline data is an array of lists [radius, x, y, z]"""
     parser = MMCIFParser()
     struct_path = "{}/{}/{}.cif".format(RIBETL_DATA, RCSB_ID, RCSB_ID)
     structure = parser.get_structure(RCSB_ID, struct_path)
-
     atoms = Selection.unfold_entities(structure, "A")
-    ns = NeighborSearch(atoms)
-    coordinates = refined_tunnel_coordinates["6Z6K"]
+    ns    = NeighborSearch(atoms)
+    print(structure)
+    nbhd = set()
 
-    nearby_atoms_list = []
+    for [dynamic_radius, x,y,z] in centerline_data:
+        print("Processing centerline point: {}, {}, {} with rad [{}]".format(x,y,z, dynamic_radius+20))
+        nearby_atoms = ns.search([x,y,z], dynamic_radius+10, "A")  
+        print("Nearby atoms :", nearby_atoms)
+        nbhd.update(nearby_atoms)
 
-    nbhd = []
-    for coord in coordinates:
-        nearby_atoms = ns.search(coord, 15.0, "A")  # 10.0 is the distance in angstroms
-        nearby_atoms_list = list(nearby_atoms)
-        nbhd = nbhd + nearby_atoms_list
-
-    return nbhd
+    print("located {} atoms".format(len(nbhd)))
+    #TODO: inject residue/chain information into the encoding.
+    return list(nbhd)
 
 def encode_atoms(nearby_atoms_list: list):
+
     atom_radii = {
         # element: vwd_radius
     }
@@ -1668,7 +1666,9 @@ def parse_encod():
     with open(encodings_path, "w") as fp:
         json.dump(encodings_dict, fp)
 
-print(open_tunnel_csv(RCSB_ID))
+
+data = open_tunnel_csv(RCSB_ID)
+parse_struct_via_centerline(data)
 # create_pcd_from_atoms(coordinates, colors, "home/rtviii/dev/open3d_mesh/encodings/{}.json".format(RCSB_ID))
 
 # n = np.vstack((nbhd))
