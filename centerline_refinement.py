@@ -7,7 +7,7 @@ import numpy as np
 import open3d as o3d
 from open3d import core as o3c
 from mendeleev import element
-
+import pandas as pd
 
 refined_tunnel_coordinates = {
     "3JAH": [
@@ -1568,12 +1568,32 @@ refined_tunnel_coordinates = {
         [188.507, 289.775, 217.900],
     ],
 }
-RCSB_ID = "6Z6K"
-RIBETL_DATA = "/Users/rtviii/dev/open3d_mesh"
+RCSB_ID     = "6Z6K"
+RIBETL_DATA = "/Users/rtviii/dev/RIBETL_DATA"
 
 # Tunnel refinement: 
 # - using the centerline and dynamic probe radius, extract the atoms within 15A radius of the centerline
 # - when processing atoms, encode their vdw radius, atom type and residue and chain id 
+
+def open_tunnel_csv(rcsb_id: str):
+    TUNNEL_DATA = "/Users/rtviii/dev/open3d_mesh/Tunnels"
+    TUNNEL_PATH = "{}/tunnel_{}.csv".format(TUNNEL_DATA, rcsb_id)
+
+
+    # Read the CSV file into a DataFrame
+    df = pd.read_csv(TUNNEL_PATH)
+
+    # Iterate over each row and select "FreeRadius" and XYZ coordinates
+    for index, row in df.iterrows():
+        free_radius = row['FreeRadius']
+        x_coordinate = row['X']
+        y_coordinate = row['Y']
+        z_coordinate = row['Z']
+
+        # Now you can use the selected variables as needed
+        print(f"Free Radius: {free_radius}, Coordinates: ({x_coordinate}, {y_coordinate}, {z_coordinate})")
+
+
 
 def parse_struct_via_centerline() -> list:
     """return list of atoms"""
@@ -1594,7 +1614,6 @@ def parse_struct_via_centerline() -> list:
         nbhd = nbhd + nearby_atoms_list
 
     return nbhd
-
 
 def encode_atoms(nearby_atoms_list: list):
     atom_radii = {
@@ -1632,7 +1651,6 @@ def encode_atoms(nearby_atoms_list: list):
     }
     return encodings_dict
 
-
 def create_pcd_from_atoms(
     positions: np.ndarray, atom_types: np.ndarray, save_path: str
 ):
@@ -1640,16 +1658,17 @@ def create_pcd_from_atoms(
     pcd.colors = o3d.utility.Vector3dVector(atom_types)
     o3d.io.write_point_cloud(save_path, pcd)
 
+def parse_encod():
+    atoms = parse_struct_via_centerline()
+    encodings_dict = encode_atoms(atoms)
+    coordinates = encodings_dict["coordinates"]
+    colors = encodings_dict["radius_types_0"]
+    encodings_path = "/Users/rtviii/dev/open3d_mesh/encodings/{}.json".format(RCSB_ID)
 
-atoms = parse_struct_via_centerline()
-encodings_dict = encode_atoms(atoms)
-coordinates = encodings_dict["coordinates"]
-colors = encodings_dict["radius_types_0"]
-encodings_path = "/Users/rtviii/dev/open3d_mesh/encodings/{}.json".format(RCSB_ID)
+    with open(encodings_path, "w") as fp:
+        json.dump(encodings_dict, fp)
 
-with open(encodings_path, "w") as fp:
-    json.dump(encodings_dict, fp)
-
+print(open_tunnel_csv(RCSB_ID))
 # create_pcd_from_atoms(coordinates, colors, "home/rtviii/dev/open3d_mesh/encodings/{}.json".format(RCSB_ID))
 
 # n = np.vstack((nbhd))
