@@ -1569,18 +1569,16 @@ refined_tunnel_coordinates = {
     ],
 }
 
-RCSB_ID = "6Z6K"
+RCSB_ID     = "6Z6K"
 RIBETL_DATA = "/Users/rtviii/dev/open3d_mesh"
-
 
 def parse_struct_via_centerline() -> list:
     """return list of atoms"""
-    parser = MMCIFParser()
+    parser      = MMCIFParser()
     struct_path = "{}/{}/{}.cif".format(RIBETL_DATA, RCSB_ID, RCSB_ID)
-    structure = parser.get_structure(RCSB_ID, struct_path)
-
-    atoms = Selection.unfold_entities(structure, "A")
-    ns = NeighborSearch(atoms)
+    structure   = parser.get_structure(RCSB_ID, struct_path)
+    atoms       = Selection.unfold_entities(structure, "A")
+    ns          = NeighborSearch(atoms)
     coordinates = refined_tunnel_coordinates["6Z6K"]
 
     nearby_atoms_list = []
@@ -1593,11 +1591,12 @@ def parse_struct_via_centerline() -> list:
 
     return nbhd
 
-
 def encode_atoms(nearby_atoms_list: list):
+
     atom_radii = {
         # element: vwd_radius
     }
+
     atom_encodings = {
         # C : 1
         # N : 2
@@ -1630,7 +1629,6 @@ def encode_atoms(nearby_atoms_list: list):
     }
     return encodings_dict
 
-
 def create_pcd_from_atoms(
     positions: np.ndarray, atom_types: np.ndarray, save_path: str
 ):
@@ -1638,8 +1636,8 @@ def create_pcd_from_atoms(
     pcd.colors = o3d.utility.Vector3dVector(atom_types)
     o3d.io.write_point_cloud(save_path, pcd)
 
-
 atoms = parse_struct_via_centerline()
+
 encodings_dict = encode_atoms(atoms)
 coordinates = encodings_dict["coordinates"]
 colors = encodings_dict["radius_types_0"]

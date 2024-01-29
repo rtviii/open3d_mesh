@@ -18,8 +18,7 @@ def get_sphere_indices_voxelized(center: np.ndarray, radius: int):
     indices = np.indices( (
             x_range.stop - x_range.start,
             y_range.stop - y_range.start,
-            z_range.stop - z_range.start)
-    )
+            z_range.stop - z_range.start) )
 
     indices += np.array([x_range.start, y_range.start, z_range.start])[ :, np.newaxis, np.newaxis, np.newaxis ]
     indices = indices.transpose(1, 2, 3, 0)
@@ -46,15 +45,7 @@ _ix = [coord0, coord1, coord2]
 pcd        = o3d.geometry.PointCloud()
 pcd.points = o3d.utility.Vector3dVector(np.array(_ix))
 
-# print(clrs)
-# exit()
-# pcd.colors = o3d.utility.Vector3dVector(np.array(clrs))
-# o3d.visualization.draw_geometries([pcd])
-
 voxel_grid = o3d.geometry.VoxelGrid.create_from_point_cloud(pcd, voxel_size=0.1)
-
-# exit()
-
 origin = np.asarray(voxel_grid.origin)
 indices1 = get_sphere_indices_voxelized(coord1, 50)
 for i in indices1:

@@ -85,18 +85,16 @@ def get_sphere_indices_voxelized(center: np.ndarray, radius: int):
     z_range = slice(int(np.floor(z0) - (radius + 1)), int(np.ceil(z0) + (radius + 1)))
 
 
-    indices = np.indices(
-        (
+    indices = np.indices( (
             x_range.stop - x_range.start,
             y_range.stop - y_range.start,
             z_range.stop - z_range.start,
-        )
-    )
-    indices += np.array([x_range.start, y_range.start, z_range.start])[
-        :, np.newaxis, np.newaxis, np.newaxis
-    ]
+        ) )
+
+    indices += np.array([x_range.start, y_range.start, z_range.start])[ :, np.newaxis, np.newaxis, np.newaxis ]
     indices = indices.transpose(1, 2, 3, 0)
     indices_list = list(map(tuple, indices.reshape(-1, 3)))
+
     #!------ Generate indices of a voxel cube of side 2r+2  around the centerpoint
 
     sphere_active_ix = []
@@ -124,7 +122,6 @@ def visualize_source_coordinates(
         )
         nulled_grid[vox_x, vox_y, vox_z] = True
     return nulled_grid
-
 
 def visualize_as_spheres(
     nulled_grid, source_coordinates: np.ndarray, radii_types: np.ndarray
