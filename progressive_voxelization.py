@@ -4,6 +4,8 @@ from pprint import pprint
 import open3d as o3d
 import numpy as np
 
+#TODO : 1. Remove ions and non-standard residues when refining the tunnel
+#TOOD : 2. make the centerline scan in refinement dynamic (on radius of probe)
 
 def get_sphere_indices_voxelized(center: np.ndarray, radius: int):
 
